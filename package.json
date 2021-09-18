@@ -1,0 +1,19 @@
+{
+  "name": "harmonix-protocol",
+  "version": "1.0.0",
+  "description": "Harmonix Finance Smart Contracts",
+  "main": "index.js",
+  "scripts": {
+    "test": "npx hardhat test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/0xMelheor/harmonix-protocol.git"
+  },
+  "author": "0xMelheor",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/0xMelheor/harmonix-protocol/issues"
+  },
+  "homepage": "https://github.com/0xMelheor/harmonix-protocol#readme"
+}
