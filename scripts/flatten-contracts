@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+FILES="./contracts/*.sol"
+for f in $FILES
+do
+  if [[ $f == *"Vault"* ]]; then
+    echo "Omitting $f file..."
+  else
+    echo "Processing $f file..."
+    # ./node_modules/.bin/truffle-flattener "$f" > "./flat/$f"
+    npx hardhat flatten "$f" > "./flat/$f"
+  fi
+done
