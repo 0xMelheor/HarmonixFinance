@@ -1220,45 +1220,75 @@ library SafeMath {
 }
 
 
-// File contracts/util/MintAccess.sol
+// File @openzeppelin/contracts/access/Ownable.sol@v4.3.2
 
-// SPDX-License-Identifier: GPL
+// SPDX-License-Identifier: MIT
+
 pragma solidity ^0.8.0;
 
-contract MintAccess {
+/**
+ * @dev Contract module which provides a basic access control mechanism, where
+ * there is an account (an owner) that can be granted exclusive access to
+ * specific functions.
+ *
+ * By default, the owner account will be the one that deploys the contract. This
+ * can later be changed with {transferOwnership}.
+ *
+ * This module is used through inheritance. It will make available the modifier
+ * `onlyOwner`, which can be applied to your functions to restrict their use to
+ * the owner.
+ */
+abstract contract Ownable is Context {
+    address private _owner;
 
-    address public governance;
-    mapping(address => bool) public minters;
+    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
-    event AddMinter(address indexed minter);
-    event RemoveMinter(address indexed minter);
-
+    /**
+     * @dev Initializes the contract setting the deployer as the initial owner.
+     */
     constructor() {
-        governance = msg.sender;
+        _setOwner(_msgSender());
     }
 
-    modifier onlyGov {
-        require(msg.sender == governance, "!governance");
+    /**
+     * @dev Returns the address of the current owner.
+     */
+    function owner() public view virtual returns (address) {
+        return _owner;
+    }
+
+    /**
+     * @dev Throws if called by any account other than the owner.
+     */
+    modifier onlyOwner() {
+        require(owner() == _msgSender(), "Ownable: caller is not the owner");
         _;
     }
 
-    modifier onlyMinter {
-        require(minters[msg.sender], "!minter");
-        _;
+    /**
+     * @dev Leaves the contract without owner. It will not be possible to call
+     * `onlyOwner` functions anymore. Can only be called by the current owner.
+     *
+     * NOTE: Renouncing ownership will leave the contract without an owner,
+     * thereby removing any functionality that is only available to the owner.
+     */
+    function renounceOwnership() public virtual onlyOwner {
+        _setOwner(address(0));
     }
 
-    function setGovernance(address _governance) public onlyGov {
-        governance = _governance;
+    /**
+     * @dev Transfers ownership of the contract to a new account (`newOwner`).
+     * Can only be called by the current owner.
+     */
+    function transferOwnership(address newOwner) public virtual onlyOwner {
+        require(newOwner != address(0), "Ownable: new owner is the zero address");
+        _setOwner(newOwner);
     }
 
-    function addMinter(address _minter) virtual public onlyGov {
-        minters[_minter] = true;
-        emit AddMinter(_minter);
-    }
-
-    function removeMinter(address _minter) virtual public onlyGov {
-        minters[_minter] = false;
-        emit RemoveMinter(_minter);
+    function _setOwner(address newOwner) private {
+        address oldOwner = _owner;
+        _owner = newOwner;
+        emit OwnershipTransferred(oldOwner, newOwner);
     }
 }
 
@@ -1438,7 +1468,6 @@ contract Dictionary {
       "inflation",
       "minimalism",
       "impermanent loss",
-      "airdrop",
       "no gains",
       "luxury",
       "shitcoins",
@@ -1472,7 +1501,6 @@ contract Dictionary {
       "abstraction",
       "ancient aliens",
       "taking profit",
-      "stablecoins",
       "maximalism",
       "emission schedule",
       "consensus",
@@ -1525,11 +1553,11 @@ contract Dictionary {
       "FUD"
     ];
 
-    string[] private fancySuffixes1 = ['sharding', 'slashing', 'liquidation', 'ICO', 'liquidity', 'governance', 'KYC'];
+    string[] private fancySuffixes1 = ['sharding', 'slashing', 'liquidation', 'ICO', 'liquidity', 'governance', 'KYC', 'airdrop', 'storage'];
     string[] private fancySuffixes2 = ['analysis', 'arbitrage', 'exploit'];
     string[] private fancySuffixes3 = ['gains', 'leverage', 'price pump'];
     string[] private fancySuffixes4 = ['withdrawal fees', 'deposit fees', 'transaction fees', 'volatility', 'slippage'];
-    string[] private fancySuffixes5 = ['NFTs', 'shitcoins', 'hidden gems'];
+    string[] private fancySuffixes5 = ['NFTs', 'shitcoins', 'hidden gems', 'stablecoins'];
     string[] private fancySuffixes6 = ['TVL', 'price', 'APY', 'liquidity'];
     string[] private fancySuffixes7 = ['the dip', 'the peak', 'ATH', 'the bottom'];
 
@@ -1541,14 +1569,13 @@ contract Dictionary {
     string[] private fancyModifiers6 = ['high ', 'low ', 'huge ', 'ridiculous ', 'astronomic '];
     string[] private fancyModifiers7 = ['buying ', 'selling ', 'HODLing to '];
 
-    uint256 randNonce = 0;
-
-    function randMod(uint256 modulus) internal view returns (uint256) {
-        // randNonce = randNonce.add(1);
-        return uint256(keccak256(abi.encodePacked(block.timestamp, msg.sender, randNonce))) % modulus;
+    uint256 _randNonce = 0;
+    function randMod(uint256 modulus) internal returns (uint256) {
+        _randNonce = _randNonce.add(1);
+        return uint256(keccak256(abi.encodePacked(block.timestamp, msg.sender, _randNonce))) % modulus;
     }
 
-    function generateName() external view returns (string memory) {
+    function _generateName() internal returns (string memory) {
         string memory _prefix = prefix[randMod(prefix.length)];
         string memory _main = main[randMod(main.length)];
 
@@ -1605,16 +1632,35 @@ pragma solidity ^0.8.0;
 
 
 
-contract HarmonixKey is ERC721, Dictionary, MintAccess {
+contract HarmonixKey is ERC721, Dictionary, Ownable {
     using SafeMath for uint256;
     
-    string public cardColor;
-    string[] public assets;
-    mapping(address => uint256) issueDate;
+    string public cardColor;    // color of the key
+    address[] public assets;    // contract addresses of tokens held by the vault
+
+    struct TokenData {
+        string tag;             // auto-generated token tag
+        uint256 issueDate;      // date of token creation
+    }
+    mapping(uint256 => TokenData) tokens;
+
+    uint256 _idNonce = 0;
 
     constructor() ERC721("Harmonix Vault Key", "HMXKEY") {}
 
-    // function mint() public onlyMinter {
+    // Token ID needs to be unique and non-consecutive for greater security, so that
+    // no one else can guess other user accounts from knowing the tokenId of a single user
+    function _generateID() internal returns (uint256) {
+        _idNonce = _idNonce.add(1);
+        return uint256(keccak256(abi.encodePacked(_idNonce)));
+    }
+
+    function mint(address user) public onlyOwner {
     //     _mint(msg.sender);
-    // }
+    }
+
+    function createKey() external onlyOwner returns (uint256) {
+        uint256 tokenId = _generateID();
+        return tokenId;
+    }
 }
