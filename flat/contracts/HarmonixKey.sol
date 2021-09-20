@@ -1655,12 +1655,10 @@ contract HarmonixKey is ERC721, Dictionary, Ownable {
         return uint256(keccak256(abi.encodePacked(_idNonce)));
     }
 
-    function mint(address user) public onlyOwner {
-    //     _mint(msg.sender);
-    }
-
-    function createKey() external onlyOwner returns (uint256) {
+    function createNFT(address user) external onlyOwner returns (uint256) {
         uint256 tokenId = _generateID();
+        _mint(user, tokenId);
+        //_setTokenURI(tokenId, tokenURI);
         return tokenId;
     }
 }

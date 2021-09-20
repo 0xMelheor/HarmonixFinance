@@ -27,7 +27,7 @@ describe("Harmonix Vault Key", function () {
     console.log(name2)
     expect(name1).to.have.lengthOf.above(10);
     expect(name2).to.have.lengthOf.above(10);
-    expect(name1).to.not.eql(name2);
+    expect(name1).to.not.equal(name2);
   });
 
   it("can generate unique non-consecutive ID", async function () {
@@ -35,11 +35,26 @@ describe("Harmonix Vault Key", function () {
     await token.generateID()
     let id1 = await token.generatedIDs(0)
     let id2 = await token.generatedIDs(1)
-    console.log(id1)
-    console.log(id2)
-    expect(id1).to.have.lengthOf.above(10);
-    expect(id2).to.have.lengthOf.above(10);
-    expect(id1).to.not.eql(id2);
-    expect(id1.add(1)).to.not.eql(id2);
+    expect(id1).to.not.equal(id2);
+    expect(id1.add(1)).to.not.equal(id2);
   });
+
+  it("minting NFT emits Transfer event", async function () {
+    let tx = await token.createNFT(other.address);
+    let receipt = await tx.wait();
+    expect(receipt.events).to.have.lengthOf(1);
+    let event = receipt.events[0];
+    expect(event.event).to.equal('Transfer');
+    expect(event.args.to).to.equal(other.address);
+  });
+
+  it("can mint new NFT for others", async function () {
+    let tx = await token.createNFT(other.address);
+    let receipt = await tx.wait();
+    let event = receipt.events[0];
+    let tokenId = event.args.tokenId;
+    expect(await token.ownerOf(tokenId)).to.equal(other.address);
+    expect(await token.balanceOf(owner.address)).to.equal(0);
+    expect(await token.balanceOf(other.address)).to.equal(1);
+  })
 })
