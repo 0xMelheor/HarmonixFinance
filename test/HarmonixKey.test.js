@@ -56,5 +56,22 @@ describe("Harmonix Vault Key", function () {
     expect(await token.ownerOf(tokenId)).to.equal(other.address);
     expect(await token.balanceOf(owner.address)).to.equal(0);
     expect(await token.balanceOf(other.address)).to.equal(1);
-  })
+  });
+
+  it("only owner can mint NFTs", async function () {
+    expect(
+      tokenOther.createNFT(other.address, { from: other.address })
+    ).revertedWith(Error, "Ownable: caller is not the ower");
+  });
+
+  it("keys/NFTs can be transferred", async function () {
+    let tx = await token.createNFT(other.address);
+    let receipt = await tx.wait();
+    let event = receipt.events[0];
+    let tokenId = event.args.tokenId;
+    await tokenOther.transferFrom(other.address, other1.address, tokenId);
+    expect(await token.ownerOf(tokenId)).to.equal(other1.address);
+    expect(await token.balanceOf(other.address)).to.equal(0);
+    expect(await token.balanceOf(other1.address)).to.equal(1);
+  });
 })
