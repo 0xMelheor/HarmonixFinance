@@ -1,5 +1,235 @@
 // Sources flattened with hardhat v2.6.4 https://hardhat.org
 
+// File @openzeppelin/contracts/utils/math/SafeMath.sol@v4.3.2
+
+// SPDX-License-Identifier: MIT
+
+pragma solidity ^0.8.0;
+
+// CAUTION
+// This version of SafeMath should only be used with Solidity 0.8 or later,
+// because it relies on the compiler's built in overflow checks.
+
+/**
+ * @dev Wrappers over Solidity's arithmetic operations.
+ *
+ * NOTE: `SafeMath` is no longer needed starting with Solidity 0.8. The compiler
+ * now has built in overflow checking.
+ */
+library SafeMath {
+    /**
+     * @dev Returns the addition of two unsigned integers, with an overflow flag.
+     *
+     * _Available since v3.4._
+     */
+    function tryAdd(uint256 a, uint256 b) internal pure returns (bool, uint256) {
+        unchecked {
+            uint256 c = a + b;
+            if (c < a) return (false, 0);
+            return (true, c);
+        }
+    }
+
+    /**
+     * @dev Returns the substraction of two unsigned integers, with an overflow flag.
+     *
+     * _Available since v3.4._
+     */
+    function trySub(uint256 a, uint256 b) internal pure returns (bool, uint256) {
+        unchecked {
+            if (b > a) return (false, 0);
+            return (true, a - b);
+        }
+    }
+
+    /**
+     * @dev Returns the multiplication of two unsigned integers, with an overflow flag.
+     *
+     * _Available since v3.4._
+     */
+    function tryMul(uint256 a, uint256 b) internal pure returns (bool, uint256) {
+        unchecked {
+            // Gas optimization: this is cheaper than requiring 'a' not being zero, but the
+            // benefit is lost if 'b' is also tested.
+            // See: https://github.com/OpenZeppelin/openzeppelin-contracts/pull/522
+            if (a == 0) return (true, 0);
+            uint256 c = a * b;
+            if (c / a != b) return (false, 0);
+            return (true, c);
+        }
+    }
+
+    /**
+     * @dev Returns the division of two unsigned integers, with a division by zero flag.
+     *
+     * _Available since v3.4._
+     */
+    function tryDiv(uint256 a, uint256 b) internal pure returns (bool, uint256) {
+        unchecked {
+            if (b == 0) return (false, 0);
+            return (true, a / b);
+        }
+    }
+
+    /**
+     * @dev Returns the remainder of dividing two unsigned integers, with a division by zero flag.
+     *
+     * _Available since v3.4._
+     */
+    function tryMod(uint256 a, uint256 b) internal pure returns (bool, uint256) {
+        unchecked {
+            if (b == 0) return (false, 0);
+            return (true, a % b);
+        }
+    }
+
+    /**
+     * @dev Returns the addition of two unsigned integers, reverting on
+     * overflow.
+     *
+     * Counterpart to Solidity's `+` operator.
+     *
+     * Requirements:
+     *
+     * - Addition cannot overflow.
+     */
+    function add(uint256 a, uint256 b) internal pure returns (uint256) {
+        return a + b;
+    }
+
+    /**
+     * @dev Returns the subtraction of two unsigned integers, reverting on
+     * overflow (when the result is negative).
+     *
+     * Counterpart to Solidity's `-` operator.
+     *
+     * Requirements:
+     *
+     * - Subtraction cannot overflow.
+     */
+    function sub(uint256 a, uint256 b) internal pure returns (uint256) {
+        return a - b;
+    }
+
+    /**
+     * @dev Returns the multiplication of two unsigned integers, reverting on
+     * overflow.
+     *
+     * Counterpart to Solidity's `*` operator.
+     *
+     * Requirements:
+     *
+     * - Multiplication cannot overflow.
+     */
+    function mul(uint256 a, uint256 b) internal pure returns (uint256) {
+        return a * b;
+    }
+
+    /**
+     * @dev Returns the integer division of two unsigned integers, reverting on
+     * division by zero. The result is rounded towards zero.
+     *
+     * Counterpart to Solidity's `/` operator.
+     *
+     * Requirements:
+     *
+     * - The divisor cannot be zero.
+     */
+    function div(uint256 a, uint256 b) internal pure returns (uint256) {
+        return a / b;
+    }
+
+    /**
+     * @dev Returns the remainder of dividing two unsigned integers. (unsigned integer modulo),
+     * reverting when dividing by zero.
+     *
+     * Counterpart to Solidity's `%` operator. This function uses a `revert`
+     * opcode (which leaves remaining gas untouched) while Solidity uses an
+     * invalid opcode to revert (consuming all remaining gas).
+     *
+     * Requirements:
+     *
+     * - The divisor cannot be zero.
+     */
+    function mod(uint256 a, uint256 b) internal pure returns (uint256) {
+        return a % b;
+    }
+
+    /**
+     * @dev Returns the subtraction of two unsigned integers, reverting with custom message on
+     * overflow (when the result is negative).
+     *
+     * CAUTION: This function is deprecated because it requires allocating memory for the error
+     * message unnecessarily. For custom revert reasons use {trySub}.
+     *
+     * Counterpart to Solidity's `-` operator.
+     *
+     * Requirements:
+     *
+     * - Subtraction cannot overflow.
+     */
+    function sub(
+        uint256 a,
+        uint256 b,
+        string memory errorMessage
+    ) internal pure returns (uint256) {
+        unchecked {
+            require(b <= a, errorMessage);
+            return a - b;
+        }
+    }
+
+    /**
+     * @dev Returns the integer division of two unsigned integers, reverting with custom message on
+     * division by zero. The result is rounded towards zero.
+     *
+     * Counterpart to Solidity's `/` operator. Note: this function uses a
+     * `revert` opcode (which leaves remaining gas untouched) while Solidity
+     * uses an invalid opcode to revert (consuming all remaining gas).
+     *
+     * Requirements:
+     *
+     * - The divisor cannot be zero.
+     */
+    function div(
+        uint256 a,
+        uint256 b,
+        string memory errorMessage
+    ) internal pure returns (uint256) {
+        unchecked {
+            require(b > 0, errorMessage);
+            return a / b;
+        }
+    }
+
+    /**
+     * @dev Returns the remainder of dividing two unsigned integers. (unsigned integer modulo),
+     * reverting with custom message when dividing by zero.
+     *
+     * CAUTION: This function is deprecated because it requires allocating memory for the error
+     * message unnecessarily. For custom revert reasons use {tryMod}.
+     *
+     * Counterpart to Solidity's `%` operator. This function uses a `revert`
+     * opcode (which leaves remaining gas untouched) while Solidity uses an
+     * invalid opcode to revert (consuming all remaining gas).
+     *
+     * Requirements:
+     *
+     * - The divisor cannot be zero.
+     */
+    function mod(
+        uint256 a,
+        uint256 b,
+        string memory errorMessage
+    ) internal pure returns (uint256) {
+        unchecked {
+            require(b > 0, errorMessage);
+            return a % b;
+        }
+    }
+}
+
+
 // File @openzeppelin/contracts/token/ERC20/IERC20.sol@v4.3.2
 
 // SPDX-License-Identifier: MIT
@@ -295,8 +525,8 @@ contract Manager is Ownable {
 
     event ManagerChanged(address indexed from, address indexed to);
 
-    constructor(address _mgr) {
-        mgr = _mgr;
+    constructor() {
+        mgr = owner();
     }
 
     /**
@@ -319,28 +549,17 @@ contract Manager is Ownable {
 }
 
 
-// File contracts/interfaces/IGasPrice.sol
-
-// SPDX-License-Identifier: GPL
-pragma solidity ^0.8.0;
-
-interface IGasPrice {
-    function maxGasPrice() external returns (uint);
-}
-
-
 // File contracts/util/GasThrottler.sol
 
 // SPDX-License-Identifier: GPL
 pragma solidity ^0.8.0;
 
 
-
 contract GasThrottler is Manager {
 
     uint256 public maxGas = 10000000000; // 10 gwei
 
-    constructor(uint256 _max) Manager(owner()) {
+    constructor(uint256 _max) {
         maxGas = _max;
     }
 
@@ -367,9 +586,13 @@ pragma solidity ^0.8.0;
 
 
 
+
 // @title   Harmonix Strategy Template
 // @dev     All strategies must inherit from this class
 abstract contract BaseStrategy is Manager, Pausable, GasThrottler {
+    using SafeMath for uint256;
+
+    address constant public wone = address(0xcF664087a5bB0237a0BAd6742852ec6c8d69A27a);
 
     /**
      * @notice Throws if called by smart contract
@@ -383,20 +606,26 @@ abstract contract BaseStrategy is Manager, Pausable, GasThrottler {
     address public vault;           // address of the managing vault
     address public masterchef;      // masterchef for this strategy
     address public strategist;      // address of the strategy developer
-    uint256 public strategistFee;   // the management fee taken by the strategy developer
-    uint256 public gasFee;          // fee paid to caller to compensate them for the call
+    uint256 public strategistFee;   // the management fee taken by the strategy developer (in BIPS)
+    uint256 public gasFee;          // fee paid to caller to compensate them for the call (in BIPS)
+    uint256 internal minToReinvest; // minimum reward amount available to run reinvest logic
+
+    uint256 constant internal BIPS_DIVISOR = 10000;
 
     address public stakingContract; // xHMX contract paying investors fees from all contracts on the system
 
+    event Deposit(address indexed account, uint amount);
+    event Withdraw(address indexed account, uint amount);
+    event UpdateMinTokensToReinvest(uint oldValue, uint newValue);
+
     constructor(
-        address _mgr,
         address _want,
         address _vault,
         address _strategist,
         address _masterchef,
         uint256 _fee,
         uint256 _gasfee
-    ) Manager(_mgr) {
+    ) {
         want = _want;
         vault = _vault;
         strategist = _strategist;
@@ -448,10 +677,45 @@ abstract contract BaseStrategy is Manager, Pausable, GasThrottler {
     function reinvest() internal virtual;
 
     /**
+     * @notice Estimate reinvest reward
+     * @return reward tokens
+     */
+    function estimateReinvestReward() external view returns (uint) {
+        uint256 unclaimedRewards = checkReward();
+        if (unclaimedRewards >= minToReinvest) {
+            return unclaimedRewards.mul(gasFee).div(BIPS_DIVISOR);
+        }
+        return 0;
+    }
+
+    /**
+     * @notice Reward tokens available to strategy, including balance
+     * @return reward tokens
+     */
+    function checkReward() public virtual view returns (uint);
+
+    /**
+     * @dev logic for charging fees
+     */
+    function _chargeFees() internal {
+        // uint256 rewards = IERC20(reward).balanceOf(address(this));
+    }
+
+    /**
+     * @notice Update reinvest min threshold
+     * @param newValue threshold
+     */
+    function updateMinTokensToReinvest(uint256 newValue) public onlyOwner {
+        emit UpdateMinTokensToReinvest(minToReinvest, newValue);
+        minToReinvest = newValue;
+    }
+
+    /**
      * @dev function exposed to the outside for playing out the strategy. Pausing the strategy doesn't
      * withdraw funds, it simply stops the strategy from doing its own logic on top (i.e. recompounding).
      */
     function harvest() external whenNotPaused gasThrottle {
+        _chargeFees();
         reinvest();
     }
 

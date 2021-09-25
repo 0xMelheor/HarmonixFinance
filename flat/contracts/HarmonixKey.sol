@@ -1636,13 +1636,13 @@ contract HarmonixKey is ERC721, Dictionary, Ownable {
     using SafeMath for uint256;
     
     string public cardColor;    // color of the key
-    address[] public assets;    // contract addresses of tokens held by the vault
 
     struct TokenData {
         string tag;             // auto-generated token tag
         uint256 issueDate;      // date of token creation
+        bool visible;           // whether vault data related to this key is publicly visible
     }
-    mapping(uint256 => TokenData) tokens;
+    mapping(uint256 => TokenData) private tokens;
 
     uint256 _idNonce = 0;
 
@@ -1660,5 +1660,27 @@ contract HarmonixKey is ERC721, Dictionary, Ownable {
         _mint(user, tokenId);
         //_setTokenURI(tokenId, tokenURI);
         return tokenId;
+    }
+
+    // hide vault data from outsiders (only NFT owner can set this)
+    function hide(uint keyID) external {
+        if (msg.sender == IERC721(address(this)).ownerOf(keyID)) {
+            tokens[keyID].visible = false;
+        }
+    }
+
+    // show vault data to outsiders (only NFT owner can set this)
+    function show(uint keyID) external {
+        if (msg.sender == IERC721(address(this)).ownerOf(keyID)) {
+            tokens[keyID].visible = true;
+        }
+    }
+
+    // reveals whether the key data is visible or not (only the vault and key owner can see this)
+    function isVsisible(uint keyID) public view returns (bool) {
+        if (msg.sender == IERC721(address(this)).ownerOf(keyID) || msg.sender == owner()) {
+            return tokens[keyID].visible;
+        }
+        return false;
     }
 }
