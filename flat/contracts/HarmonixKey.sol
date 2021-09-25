@@ -1638,11 +1638,13 @@ contract HarmonixKey is ERC721, Dictionary, Ownable {
     string public cardColor;    // color of the key
 
     struct TokenData {
+        address owner;          // wallet that owns this NFT
         string tag;             // auto-generated token tag
         uint256 issueDate;      // date of token creation
         bool visible;           // whether vault data related to this key is publicly visible
     }
     mapping(uint256 => TokenData) private tokens;
+    mapping(address => uint256) private ownership;
 
     uint256 _idNonce = 0;
 
@@ -1655,7 +1657,7 @@ contract HarmonixKey is ERC721, Dictionary, Ownable {
         return uint256(keccak256(abi.encodePacked(_idNonce)));
     }
 
-    function createNFT(address user) external onlyOwner returns (uint256) {
+    function mint(address user) external onlyOwner returns (uint256) {
         uint256 tokenId = _generateID();
         _mint(user, tokenId);
         //_setTokenURI(tokenId, tokenURI);

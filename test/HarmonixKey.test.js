@@ -40,7 +40,7 @@ describe("Harmonix Vault Key", function () {
   });
 
   it("minting NFT emits Transfer event", async function () {
-    let tx = await token.createNFT(other.address);
+    let tx = await token.mint(other.address);
     let receipt = await tx.wait();
     expect(receipt.events).to.have.lengthOf(1);
     let event = receipt.events[0];
@@ -49,7 +49,7 @@ describe("Harmonix Vault Key", function () {
   });
 
   it("can mint new NFT for others", async function () {
-    let tx = await token.createNFT(other.address);
+    let tx = await token.mint(other.address);
     let receipt = await tx.wait();
     let event = receipt.events[0];
     let tokenId = event.args.tokenId;
@@ -60,13 +60,13 @@ describe("Harmonix Vault Key", function () {
 
   it("only owner can mint NFTs", async function () {
     expect(
-      tokenOther.createNFT(other.address, { from: other.address })
+      tokenOther.mint(other.address, { from: other.address })
     ).revertedWith(Error, "Ownable: caller is not the ower");
   });
 
   it("keys/NFTs can be transferred", async function () {
-    let tx = await token.createNFT(other.address);
-    let receipt = await tx.wait();
+    let tx = await token.mint(other.address);
+    let receipt = await tx.mint();
     let event = receipt.events[0];
     let tokenId = event.args.tokenId;
     await tokenOther.transferFrom(other.address, other1.address, tokenId);
