@@ -1,5 +1,6 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
+const { expectRevert } = require('@openzeppelin/test-helpers');
 
 
 describe("Harmonix Vault Key", function () {
@@ -59,14 +60,15 @@ describe("Harmonix Vault Key", function () {
   });
 
   it("only owner can mint NFTs", async function () {
-    expect(
-      tokenOther.mint(other.address, { from: other.address })
-    ).revertedWith(Error, "Ownable: caller is not the ower");
+    await expectRevert(
+      tokenOther.mint(other.address, { from: other.address }),
+      "Ownable: caller is not the owner"
+    );
   });
 
   it("keys/NFTs can be transferred", async function () {
     let tx = await token.mint(other.address);
-    let receipt = await tx.mint();
+    let receipt = await tx.wait();
     let event = receipt.events[0];
     let tokenId = event.args.tokenId;
     await tokenOther.transferFrom(other.address, other1.address, tokenId);
