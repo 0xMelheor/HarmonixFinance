@@ -161,4 +161,48 @@ describe("Harmonix Vault Cell", function () {
         await k1.hide(keyID);
         expect(await v1.checkKey(keyID) == true);
     });
+
+    it("lastWithdrawBlock visibility works the same way as checkKey", async function () {
+        vault = await VaultCell.deploy(key.address);
+        await vault.deployed();
+        const v0 = vault.connect(user);
+        const v1 = vault.connect(user1);
+
+        let tx = await key.mint(user.address);
+        let receipt = await tx.wait();
+        let keyID = receipt.events[0].args.tokenId;
+        
+        await vault.assignKey(keyID);
+        await vault.deposit(100);
+        await vault.withdraw(100);
+
+        // default visibility is hidden
+        expect(await vault.lastWithdrawBlock() != 0);
+        expect(await v0.lastWithdrawBlock() != 0);
+        expect(await v1.lastWithdrawBlock() == 0);
+
+        // visibility open to the public
+        await k0.show(keyID);
+        expect(await vault.lastWithdrawBlock() != 0);
+        expect(await v0.lastWithdrawBlock() != 0);
+        expect(await v1.lastWithdrawBlock() != 0);
+        
+        // visibility still open to the public
+        await key.hide(keyID);
+        expect(await vault.lastWithdrawBlock() != 0);
+        expect(await v0.lastWithdrawBlock() != 0);
+        expect(await v1.lastWithdrawBlock() != 0);
+
+        // visibility still open to the public
+        await k1.hide(keyID);
+        expect(await vault.lastWithdrawBlock() != 0);
+        expect(await v0.lastWithdrawBlock() != 0);
+        expect(await v1.lastWithdrawBlock() != 0);
+
+        // visibility hidden again
+        await k0.hide(keyID);
+        expect(await vault.lastWithdrawBlock() != 0);
+        expect(await v0.lastWithdrawBlock() != 0);
+        expect(await v1.lastWithdrawBlock() == 0);
+    });
 });
