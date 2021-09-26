@@ -89,7 +89,8 @@ describe("Harmonix Unlock Helper", function () {
     it("skips deactivated keys when multiple keys are available", async function () {
         await vault.mintKey(user.address);
         await vault.mintKey(user.address);
-        expect(await vault.getKey(user.address) == await vault.generatedKeys(0));
+        keyID = await vault.generatedKeys(0);
+        expect(await vault.getKey(user.address) == keyID);
 
         const address = await v0.getKeyContract();
         const key = await HarmonixKey.attach(address);
@@ -102,8 +103,10 @@ describe("Harmonix Unlock Helper", function () {
     it("handles multiple users without mixing up keys", async function () {
         await vault.mintKey(user.address);
         await vault.mintKey(user1.address);
-        expect(await vault.getKey(user.address) == await vault.generatedKeys(0));
-        expect(await vault.getKey(user1.address) == await vault.generatedKeys(1));
+        keyID = await vault.generatedKeys(0);
+        keyID1 = await vault.generatedKeys(1);
+        expect(await vault.getKey(user.address) == keyID);
+        expect(await vault.getKey(user1.address) == keyID1);
 
         const address = await v0.getKeyContract();
         const key = await HarmonixKey.attach(address);
@@ -114,14 +117,16 @@ describe("Harmonix Unlock Helper", function () {
             vault.getKey(user.address),
             "no active keys"
         );
-        expect(await vault.getKey(user1.address) == await vault.generatedKeys(1));
+        expect(await vault.getKey(user1.address) == keyID1);
     });
 
     it("users can trade keys", async function () {
         await vault.mintKey(user.address);
         await vault.mintKey(user1.address);
-        expect(await vault.getKey(user.address) == await vault.generatedKeys(0));
-        expect(await vault.getKey(user1.address) == await vault.generatedKeys(1));
+        keyID = await vault.generatedKeys(0);
+        keyID1 = await vault.generatedKeys(1);
+        expect(await vault.getKey(user.address) == keyID);
+        expect(await vault.getKey(user1.address) == keyID1);
 
         const address = await v0.getKeyContract();
         const key = await HarmonixKey.attach(address);
@@ -133,6 +138,13 @@ describe("Harmonix Unlock Helper", function () {
             vault.getKey(user.address),
             "no active keys"
         );
-        expect(await vault.getKey(user1.address) == await vault.generatedKeys(0));
+        expect(await vault.getKey(user1.address) == keyID);
+
+        const k1 = key.connect(user1);
+        k1.transferFrom(user1.address, user.address, keyID1);
+
+        // users swapped keys
+        expect(await vault.getKey(user.address) == keyID1);
+        expect(await vault.getKey(user1.address) == keyID);
     });
 });
