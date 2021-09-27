@@ -94,6 +94,43 @@ describe("Harmonix ERC20 Doppelganger That Keeps Info Private", function () {
         expect(await t2.balanceOf(user1.address)).to.equal(0);
     });
 
+    it("key holder can change visibility so others can see their balance", async function () {
+        await token.mintKey(user.address);
+        await token.mint(user.address, 100);
+
+        await token.mintKey(user1.address);
+        await token.mint(user1.address, 25);
+
+        expect(await token.totalSupply()).to.equal(125);
+
+        // user changes key to visible
+        keyID = await token.generatedKeys(0);
+        const address = await token.getKeyContract();
+        const key = await HarmonixKey.attach(address);
+        const k0 = key.connect(user);
+        k0.show(keyID);
+
+        // everyone can see user balance
+        expect(await token.balanceOf(user.address)).to.equal(100);
+        expect(await t0.balanceOf(user.address)).to.equal(100);
+        expect(await t1.balanceOf(user.address)).to.equal(100);
+        expect(await t2.balanceOf(user.address)).to.equal(100);
+
+        // only system and user1 can see balance of user1
+        expect(await token.balanceOf(user1.address)).to.equal(25);
+        expect(await t0.balanceOf(user1.address)).to.equal(0);
+        expect(await t1.balanceOf(user1.address)).to.equal(25);
+        expect(await t2.balanceOf(user1.address)).to.equal(0);
+
+        k0.hide(keyID);
+
+        // outsiders can't see balance anymore
+        expect(await token.balanceOf(user.address)).to.equal(100);
+        expect(await t0.balanceOf(user.address)).to.equal(100);
+        expect(await t1.balanceOf(user.address)).to.equal(0);
+        expect(await t2.balanceOf(user.address)).to.equal(0);
+    });
+
     it("only users owning a key can send/receive transactions", async function () {
         await token.mintKey(user.address);
         await token.mint(user.address, 100);
@@ -120,6 +157,69 @@ describe("Harmonix ERC20 Doppelganger That Keeps Info Private", function () {
         expect(await token.totalSupply()).to.equal(100);
         expect(await token.balanceOf(user.address)).to.equal(75);
         expect(await token.balanceOf(user1.address)).to.equal(25);
+    });
+
+    it("fetching balance of user without key throws an error", async function () {
+        await expectRevert(
+            token.balanceOf(user.address),
+            "no active keys"
+        );
+        await token.mintKey(user.address);
+        expect(await token.balanceOf(user.address)).to.equal(0);
+    })
+
+    it("deactivating key makes user unable to send/receive transactions", async function () {
+        await token.mintKey(user.address);
+        await token.mint(user.address, 100);
+        await token.mintKey(user1.address);
+
+        // can send shares over
+        await t0.transfer(user1.address, 50);
+        await t1.transfer(user.address, 25);
+
+        // current state
+        expect(await token.totalSupply()).to.equal(100);
+        expect(await token.balanceOf(user.address)).to.equal(75);
+        expect(await token.balanceOf(user1.address)).to.equal(25);
+
+        // user deactivates key
+        keyID = await token.generatedKeys(0);
+        const address = await token.getKeyContract();
+        const key = await HarmonixKey.attach(address);
+        const k0 = key.connect(user);
+        k0.deactivate(keyID);
+
+        // user can't send or receive funds anymore
+        await expectRevert(
+            t1.transfer(user.address, 10),
+            "no active keys"
+        );
+        await expectRevert(
+            t0.transfer(user1.address, 5),
+            "no active keys"
+        );
+
+        // balance no longer visible for user, still visible for user1
+        await expectRevert(
+            token.balanceOf(user.address),
+            "no active keys"
+        );
+        expect(await token.balanceOf(user1.address)).to.equal(25);
+        expect(await token.totalSupply()).to.equal(100);
+
+        k0.activate(keyID);
+        
+        // balance stays intact after activation
+        expect(await token.balanceOf(user.address)).to.equal(75);
+
+        // transfers work again
+        await t0.transfer(user1.address, 10);
+        await t1.transfer(user.address, 5);
+
+        // final state
+        expect(await token.totalSupply()).to.equal(100);
+        expect(await token.balanceOf(user.address)).to.equal(70);
+        expect(await token.balanceOf(user1.address)).to.equal(30);
     });
 
     it("system can't make transfers without approval from user", async function () {
