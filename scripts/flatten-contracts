@@ -5,6 +5,21 @@ for f in $FILES
 do
   if [[ $f == *"Vault"* ]]; then
     echo "Omitting $f file..."
+  elif [[ $f == *"PairStrategy"* ]]; then
+    echo "Omitting $f file..."
+  else
+    echo "Processing $f file..."
+    # ./node_modules/.bin/truffle-flattener "$f" > "./flat/$f"
+    npx hardhat flatten "$f" > "./flat/$f"
+  fi
+done
+
+FILES="./contracts/util/*.sol"
+mkdir ./flat/contracts/util/
+for f in $FILES
+do
+  if [[ $f == *"Vault"* ]]; then
+    echo "Omitting $f file..."
   else
     echo "Processing $f file..."
     # ./node_modules/.bin/truffle-flattener "$f" > "./flat/$f"
