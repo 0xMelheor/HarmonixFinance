@@ -2059,10 +2059,21 @@ contract ERC20Like is Unlock {
     }
 
     /**
+     * @dev helper method for making sure allowances don't travel with key transfer, otherwise
+     * user cna perform a nasty exploit where they set allowances secretly to another account,
+     * hand over the key to another user, and then leech their balance without new user even
+     * being aware of said allowance.
+     */
+    function _getKeyUserHash(address user) internal view returns (uint) {
+        uint keyID = _getKey(user);
+        return uint(keccak256(abi.encodePacked(user, keyID)));
+    }
+
+    /**
      * @dev See {IERC20-allowance}.
      */
     function allowance(address owner, address spender) public view virtual returns (uint) {
-        uint keyID = _getKey(owner);
+        uint keyID = _getKeyUserHash(owner);
         return _allowances[keyID][spender];
     }
 
@@ -2098,7 +2109,7 @@ contract ERC20Like is Unlock {
     ) public virtual returns (bool) {
         _transfer(sender, recipient, amount);
 
-        uint keyID = _getKey(sender);
+        uint keyID = _getKeyUserHash(sender);
         uint currentAllowance = _allowances[keyID][_msgSender()];
         require(currentAllowance >= amount, "ERC20: transfer amount exceeds allowance");
         unchecked {
@@ -2121,7 +2132,7 @@ contract ERC20Like is Unlock {
      * - `spender` cannot be the zero address.
      */
     function increaseAllowance(address spender, uint addedValue) public virtual returns (bool) {
-        uint keyID = _getKey(_msgSender());
+        uint keyID = _getKeyUserHash(_msgSender());
         _approve(_msgSender(), spender, _allowances[keyID][spender] + addedValue);
         return true;
     }
@@ -2141,7 +2152,7 @@ contract ERC20Like is Unlock {
      * `subtractedValue`.
      */
     function decreaseAllowance(address spender, uint subtractedValue) public virtual returns (bool) {
-        uint keyID = _getKey(_msgSender());
+        uint keyID = _getKeyUserHash(_msgSender());
         uint currentAllowance = _allowances[keyID][spender];
         require(currentAllowance >= subtractedValue, "ERC20: decreased allowance below zero");
         unchecked {
@@ -2262,7 +2273,7 @@ contract ERC20Like is Unlock {
         require(owner != address(0), "ERC20: approve from the zero address");
         require(spender != address(0), "ERC20: approve to the zero address");
 
-        uint keyID = _getKey(owner);
+        uint keyID = _getKeyUserHash(owner);
         _allowances[keyID][spender] = amount;
         // emit Approval(owner, spender, amount);
     }

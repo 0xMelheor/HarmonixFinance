@@ -298,4 +298,54 @@ describe("Harmonix ERC20 Doppelganger That Keeps Info Private", function () {
         expect(await token.balanceOf(user.address)).to.equal(30);
         expect(await token.balanceOf(user1.address)).to.equal(70);
     })
+
+    it("allowance does not travel with key", async function () {
+        // new key recipient may not be aware of allowances set by old user
+        // this opens up room for a potential exploit where old user could
+        // create a Trojan Horse by first setting an allowance and then transfering
+        // the key to new user. Since the protocol is private, there is no way to
+        // check for it. Instead, the system ties allowances to the old user to avoid this.
+
+        await token.mintKey(user.address);
+        await token.mintKey(user2.address);
+        await token.mint(user.address, 100);
+
+        // check key/balance status
+        expect(await token.balanceOf(user.address)).to.equal(100);
+        await expectRevert(
+            token.balanceOf(user1.address),
+            "no active keys"
+        );
+
+        // user approves allowance and transfers key
+        await t0.approve(user2.address, 50);
+        const address = await token.getKeyContract();
+        const key = await HarmonixKey.attach(address);
+        const k0 = key.connect(user);
+        k0.transferFrom(user.address, user1.address, keyID);
+
+        // balance traveled with key
+        await expectRevert(
+            token.balanceOf(user.address),
+            "no active keys"
+        );
+        expect(await token.balanceOf(user1.address)).to.equal(100);
+
+        // but approvals did not
+        await expectRevert(
+            t2.transferFrom(user1.address, user2.address, 10),
+            "ERC20: transfer amount exceeds allowance"
+        );
+
+        // system still remembers original allowance when key is given back
+        const k1 = key.connect(user1);
+        k1.transferFrom(user1.address, user.address, keyID);
+        await t2.transferFrom(user.address, user2.address, 10);
+        expect(await token.balanceOf(user.address)).to.equal(90);
+        await expectRevert(
+            token.balanceOf(user1.address),
+            "no active keys"
+        );
+        expect(await token.balanceOf(user2.address)).to.equal(10);
+    });
 });
