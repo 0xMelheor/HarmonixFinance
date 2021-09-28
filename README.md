@@ -23,5 +23,5 @@ Your NFT key has 2 flags on it, which you can toggle:
   - Privacy
   - To comply with local regulations (i.e. crypto ban)
   - To avoid conflicts with another key you hold (since the system will always use the key with earliest creation date)
-  - 
+
 Note that your funds are still safely stored in the vault if you deactivate your key and will be available to you once you reactivate it again.

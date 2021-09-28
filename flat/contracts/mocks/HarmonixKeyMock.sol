@@ -1908,3 +1908,23 @@ contract HarmonixKey is ERC721Enumerable, Dictionary, Ownable {
         return false;
     }
 }
+
+
+// File contracts/mocks/HarmonixKeyMock.sol
+
+// SPDX-License-Identifier: GPL
+pragma solidity ^0.8.0;
+
+// used for testing HarmonixKey
+contract HarmonixKeyMock is HarmonixKey {
+    string[] public generatedNames;
+    uint256[] public generatedIDs;
+
+    function generateName() external {
+        generatedNames.push(_generateName());
+    }
+
+    function generateID() external {
+        generatedIDs.push(_generateID());
+    }
+}

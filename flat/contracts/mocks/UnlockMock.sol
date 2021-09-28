@@ -1,5 +1,105 @@
 // Sources flattened with hardhat v2.6.4 https://hardhat.org
 
+// File @openzeppelin/contracts/utils/Context.sol@v4.3.2
+
+// SPDX-License-Identifier: MIT
+
+pragma solidity ^0.8.0;
+
+/**
+ * @dev Provides information about the current execution context, including the
+ * sender of the transaction and its data. While these are generally available
+ * via msg.sender and msg.data, they should not be accessed in such a direct
+ * manner, since when dealing with meta-transactions the account sending and
+ * paying for execution may not be the actual sender (as far as an application
+ * is concerned).
+ *
+ * This contract is only required for intermediate, library-like contracts.
+ */
+abstract contract Context {
+    function _msgSender() internal view virtual returns (address) {
+        return msg.sender;
+    }
+
+    function _msgData() internal view virtual returns (bytes calldata) {
+        return msg.data;
+    }
+}
+
+
+// File @openzeppelin/contracts/access/Ownable.sol@v4.3.2
+
+// SPDX-License-Identifier: MIT
+
+pragma solidity ^0.8.0;
+
+/**
+ * @dev Contract module which provides a basic access control mechanism, where
+ * there is an account (an owner) that can be granted exclusive access to
+ * specific functions.
+ *
+ * By default, the owner account will be the one that deploys the contract. This
+ * can later be changed with {transferOwnership}.
+ *
+ * This module is used through inheritance. It will make available the modifier
+ * `onlyOwner`, which can be applied to your functions to restrict their use to
+ * the owner.
+ */
+abstract contract Ownable is Context {
+    address private _owner;
+
+    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+
+    /**
+     * @dev Initializes the contract setting the deployer as the initial owner.
+     */
+    constructor() {
+        _setOwner(_msgSender());
+    }
+
+    /**
+     * @dev Returns the address of the current owner.
+     */
+    function owner() public view virtual returns (address) {
+        return _owner;
+    }
+
+    /**
+     * @dev Throws if called by any account other than the owner.
+     */
+    modifier onlyOwner() {
+        require(owner() == _msgSender(), "Ownable: caller is not the owner");
+        _;
+    }
+
+    /**
+     * @dev Leaves the contract without owner. It will not be possible to call
+     * `onlyOwner` functions anymore. Can only be called by the current owner.
+     *
+     * NOTE: Renouncing ownership will leave the contract without an owner,
+     * thereby removing any functionality that is only available to the owner.
+     */
+    function renounceOwnership() public virtual onlyOwner {
+        _setOwner(address(0));
+    }
+
+    /**
+     * @dev Transfers ownership of the contract to a new account (`newOwner`).
+     * Can only be called by the current owner.
+     */
+    function transferOwnership(address newOwner) public virtual onlyOwner {
+        require(newOwner != address(0), "Ownable: new owner is the zero address");
+        _setOwner(newOwner);
+    }
+
+    function _setOwner(address newOwner) private {
+        address oldOwner = _owner;
+        _owner = newOwner;
+        emit OwnershipTransferred(oldOwner, newOwner);
+    }
+}
+
+
 // File @openzeppelin/contracts/utils/introspection/IERC165.sol@v4.3.2
 
 // SPDX-License-Identifier: MIT
@@ -446,33 +546,6 @@ library Address {
                 revert(errorMessage);
             }
         }
-    }
-}
-
-
-// File @openzeppelin/contracts/utils/Context.sol@v4.3.2
-
-// SPDX-License-Identifier: MIT
-
-pragma solidity ^0.8.0;
-
-/**
- * @dev Provides information about the current execution context, including the
- * sender of the transaction and its data. While these are generally available
- * via msg.sender and msg.data, they should not be accessed in such a direct
- * manner, since when dealing with meta-transactions the account sending and
- * paying for execution may not be the actual sender (as far as an application
- * is concerned).
- *
- * This contract is only required for intermediate, library-like contracts.
- */
-abstract contract Context {
-    function _msgSender() internal view virtual returns (address) {
-        return msg.sender;
-    }
-
-    function _msgData() internal view virtual returns (bytes calldata) {
-        return msg.data;
     }
 }
 
@@ -1414,79 +1487,6 @@ library SafeMath {
 }
 
 
-// File @openzeppelin/contracts/access/Ownable.sol@v4.3.2
-
-// SPDX-License-Identifier: MIT
-
-pragma solidity ^0.8.0;
-
-/**
- * @dev Contract module which provides a basic access control mechanism, where
- * there is an account (an owner) that can be granted exclusive access to
- * specific functions.
- *
- * By default, the owner account will be the one that deploys the contract. This
- * can later be changed with {transferOwnership}.
- *
- * This module is used through inheritance. It will make available the modifier
- * `onlyOwner`, which can be applied to your functions to restrict their use to
- * the owner.
- */
-abstract contract Ownable is Context {
-    address private _owner;
-
-    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
-
-    /**
-     * @dev Initializes the contract setting the deployer as the initial owner.
-     */
-    constructor() {
-        _setOwner(_msgSender());
-    }
-
-    /**
-     * @dev Returns the address of the current owner.
-     */
-    function owner() public view virtual returns (address) {
-        return _owner;
-    }
-
-    /**
-     * @dev Throws if called by any account other than the owner.
-     */
-    modifier onlyOwner() {
-        require(owner() == _msgSender(), "Ownable: caller is not the owner");
-        _;
-    }
-
-    /**
-     * @dev Leaves the contract without owner. It will not be possible to call
-     * `onlyOwner` functions anymore. Can only be called by the current owner.
-     *
-     * NOTE: Renouncing ownership will leave the contract without an owner,
-     * thereby removing any functionality that is only available to the owner.
-     */
-    function renounceOwnership() public virtual onlyOwner {
-        _setOwner(address(0));
-    }
-
-    /**
-     * @dev Transfers ownership of the contract to a new account (`newOwner`).
-     * Can only be called by the current owner.
-     */
-    function transferOwnership(address newOwner) public virtual onlyOwner {
-        require(newOwner != address(0), "Ownable: new owner is the zero address");
-        _setOwner(newOwner);
-    }
-
-    function _setOwner(address newOwner) private {
-        address oldOwner = _owner;
-        _owner = newOwner;
-        emit OwnershipTransferred(oldOwner, newOwner);
-    }
-}
-
-
 // File contracts/util/Dictionary.sol
 
 // SPDX-License-Identifier: GPL
@@ -1906,5 +1906,98 @@ contract HarmonixKey is ERC721Enumerable, Dictionary, Ownable {
             return tokens[keyID].active;
         }
         return false;
+    }
+}
+
+
+// File contracts/util/Unlock.sol
+
+// SPDX-License-Identifier: GPL
+pragma solidity ^0.8.0;
+
+
+// @title   Logic for safe-guarding vault data via NFTs
+// @dev     All vaults must inherit from this class
+contract Unlock is Ownable {
+
+    HarmonixKey internal key;
+
+    constructor() {
+        key = new HarmonixKey();
+    }
+
+    /**
+     * @dev generates a key for the user
+     */
+    function _mintKey(address user) internal returns (uint) {
+        return key.mint(user);
+    }
+
+    /**
+     * @dev controls access based on user-controlled key visibility
+     */
+    function _hasAccess(address user, uint keyID) internal view returns (bool) {
+        return user == owner() || key.ownerOf(keyID) == user || key.isVisible(keyID);
+    }
+
+    /**
+     * @dev returns keyID for given user or throws if user has no active keys.
+     * @notice if user has more than one active key, the one with lowest index will be used.
+     */
+    function _getKey(address user) internal view returns (uint) {
+        uint userKeys = key.balanceOf(user);
+        require(userKeys > 0, "no active keys");
+        uint keyID = 0;
+        for (uint i = 0; i < userKeys; i++) {
+            keyID = key.tokenOfOwnerByIndex(user, i);
+            if (key.isActive(keyID)) {
+                break;
+            }
+            keyID = 0;
+        }
+        require(keyID != 0, "no active keys");
+        return keyID;
+    }
+
+    function _hasKey(address user) internal view returns (bool) {
+        uint userKeys = key.balanceOf(user);
+        if (userKeys == 0) {
+            return false;
+        }
+        uint keyID = 0;
+        for (uint i = 0; i < userKeys; i++) {
+            keyID = key.tokenOfOwnerByIndex(user, i);
+            if (key.isActive(keyID)) {
+                break;
+            }
+            keyID = 0;
+        }
+        if (keyID == 0) {
+            return false;
+        }
+        return true;
+    }
+}
+
+
+// File contracts/mocks/UnlockMock.sol
+
+// SPDX-License-Identifier: GPL
+pragma solidity ^0.8.0;
+
+// used for testing Unlock
+contract UnlockMock is Unlock {
+    uint[] public generatedKeys;
+
+    function getKey(address user) external view returns (uint) {
+        return _getKey(user);
+    }
+
+    function mintKey(address user) external {
+        generatedKeys.push(_mintKey(user));
+    }
+
+    function getKeyContract() external view returns (address) {
+        return address(key);
     }
 }

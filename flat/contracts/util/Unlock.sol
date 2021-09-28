@@ -1842,7 +1842,7 @@ contract HarmonixKey is ERC721Enumerable, Dictionary, Ownable {
 
     uint256 _idNonce = 0;
 
-    constructor() ERC721("Harmonix Vault Key", "HMXKEY") {}
+    constructor() ERC721("Harmonix Vault Key", "HMXK") {}
 
     // Token ID needs to be unique and non-consecutive for greater security, so that
     // no one else can guess other user accounts from knowing the tokenId of a single user
@@ -1957,5 +1957,24 @@ contract Unlock is Ownable {
         }
         require(keyID != 0, "no active keys");
         return keyID;
+    }
+
+    function _hasKey(address user) internal view returns (bool) {
+        uint userKeys = key.balanceOf(user);
+        if (userKeys == 0) {
+            return false;
+        }
+        uint keyID = 0;
+        for (uint i = 0; i < userKeys; i++) {
+            keyID = key.tokenOfOwnerByIndex(user, i);
+            if (key.isActive(keyID)) {
+                break;
+            }
+            keyID = 0;
+        }
+        if (keyID == 0) {
+            return false;
+        }
+        return true;
     }
 }

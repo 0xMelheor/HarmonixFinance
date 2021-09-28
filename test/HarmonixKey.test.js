@@ -16,7 +16,7 @@ describe("Harmonix Vault Key", function () {
 
   it("has correct name and symbol", async function () {
     expect(await token.name()).to.equal("Harmonix Vault Key");
-    expect(await token.symbol()).to.equal("HMXKEY");
+    expect(await token.symbol()).to.equal("HMXK");
   });
 
   it("can generate random token name", async function () {
