@@ -93,4 +93,29 @@ describe("Harmonix Vault", function () {
             "Vault::deposit, token not supported"
         );
     });
+
+    it("can't add strategy more than once", async function () {
+        await expectRevert(
+            vault.addStrategy(strategy.address),
+            "Vault::addStrategy, already supported"
+        );
+    });
+
+    it("can't add incompatible strategy", async function () {
+        const lp1 = await LP.deploy("Another Token", "LP", user.address, 10000);
+        await lp1.deployed();
+        const strategy1 = await Strategy.deploy(
+            lp1.address,
+            vault.address,
+            system.address,
+            chef.address,
+            1000,
+            1000,
+            lp1.address
+        );
+        await expectRevert(
+            vault.addStrategy(strategy1.address),
+            "Vault::addStrategy, not compatible"
+        );
+    });
 });
