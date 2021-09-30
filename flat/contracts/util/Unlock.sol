@@ -1825,20 +1825,18 @@ pragma solidity ^0.8.0;
 
 
 
-
 contract HarmonixKey is ERC721Enumerable, Dictionary, Ownable {
-    using SafeMath for uint256;
     
     string public cardColor;    // color of the key
 
     struct TokenData {
         string tag;             // auto-generated token tag
-        uint256 issueDate;      // date of token creation
+        uint issueDate;         // date of token creation
         bool visible;           // whether vault data related to this key is publicly visible
         bool active;            // whether the key is active (user can only have 1 active key at a time to interact with the vault)
     }
-    mapping(uint256 => TokenData) private tokens;
-    mapping(address => uint256) private ownership;
+    mapping(uint => TokenData) private tokens;
+    mapping(address => uint) private ownership;
 
     uint256 _idNonce = 0;
 
@@ -1846,13 +1844,13 @@ contract HarmonixKey is ERC721Enumerable, Dictionary, Ownable {
 
     // Token ID needs to be unique and non-consecutive for greater security, so that
     // no one else can guess other user accounts from knowing the tokenId of a single user
-    function _generateID() internal returns (uint256) {
-        _idNonce = _idNonce.add(1);
-        return uint256(keccak256(abi.encodePacked(_idNonce)));
+    function _generateID() internal returns (uint) {
+        _idNonce = _idNonce + 1;
+        return uint(keccak256(abi.encodePacked(_idNonce)));
     }
 
-    function mint(address user) external onlyOwner returns (uint256) {
-        uint256 tokenId = _generateID();
+    function mint(address user) external onlyOwner returns (uint) {
+        uint tokenId = _generateID();
         tokens[tokenId] = TokenData(
             _generateName(),
             block.timestamp,

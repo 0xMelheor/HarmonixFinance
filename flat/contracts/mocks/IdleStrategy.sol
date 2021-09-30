@@ -843,3 +843,55 @@ abstract contract BaseStrategy is Manager, Pausable, GasThrottler, SimpleERC20 {
         return amount * (totalDeposits() / totalSupply);
     }
 }
+
+
+// File contracts/mocks/IdleStrategy.sol
+
+// SPDX-License-Identifier: GPL
+pragma solidity ^0.8.0;
+
+// barebones strategy used for testing vaults
+contract IdleStrategy is BaseStrategy {
+
+    constructor (
+        address _want,
+        address _vault,
+        address _strategist,
+        address _masterchef,
+        uint256 _fee,
+        uint256 _gasfee,
+        address _native
+    ) BaseStrategy(
+        _want,
+        _vault,
+        _strategist,
+        _masterchef,
+        _fee,
+        _gasfee,
+        _native
+    ) {}
+
+    function deposit(uint256 amount) external override {
+
+    }
+
+    function withdraw(uint256 amount) external override {
+
+    }
+
+    function emergencyWithdraw() internal override {
+
+    }
+
+    function reinvest() internal override {
+
+    }
+
+    function checkReward() public view override returns (uint) {
+        return 1;
+    }
+
+    function totalDeposits() public view override returns (uint) {
+        return totalSupply;
+    }
+}

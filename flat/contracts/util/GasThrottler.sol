@@ -145,10 +145,6 @@ contract GasThrottler is Manager {
 
     uint256 public maxGas = 10000000000; // 10 gwei
 
-    constructor(uint256 _max) {
-        maxGas = _max;
-    }
-
     /**
      * @dev Updates the gas fee.
      * @param _max new maximum gas price

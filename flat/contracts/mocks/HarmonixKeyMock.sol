@@ -1184,6 +1184,79 @@ abstract contract ERC721Enumerable is ERC721, IERC721Enumerable {
 }
 
 
+// File @openzeppelin/contracts/access/Ownable.sol@v4.3.2
+
+// SPDX-License-Identifier: MIT
+
+pragma solidity ^0.8.0;
+
+/**
+ * @dev Contract module which provides a basic access control mechanism, where
+ * there is an account (an owner) that can be granted exclusive access to
+ * specific functions.
+ *
+ * By default, the owner account will be the one that deploys the contract. This
+ * can later be changed with {transferOwnership}.
+ *
+ * This module is used through inheritance. It will make available the modifier
+ * `onlyOwner`, which can be applied to your functions to restrict their use to
+ * the owner.
+ */
+abstract contract Ownable is Context {
+    address private _owner;
+
+    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+
+    /**
+     * @dev Initializes the contract setting the deployer as the initial owner.
+     */
+    constructor() {
+        _setOwner(_msgSender());
+    }
+
+    /**
+     * @dev Returns the address of the current owner.
+     */
+    function owner() public view virtual returns (address) {
+        return _owner;
+    }
+
+    /**
+     * @dev Throws if called by any account other than the owner.
+     */
+    modifier onlyOwner() {
+        require(owner() == _msgSender(), "Ownable: caller is not the owner");
+        _;
+    }
+
+    /**
+     * @dev Leaves the contract without owner. It will not be possible to call
+     * `onlyOwner` functions anymore. Can only be called by the current owner.
+     *
+     * NOTE: Renouncing ownership will leave the contract without an owner,
+     * thereby removing any functionality that is only available to the owner.
+     */
+    function renounceOwnership() public virtual onlyOwner {
+        _setOwner(address(0));
+    }
+
+    /**
+     * @dev Transfers ownership of the contract to a new account (`newOwner`).
+     * Can only be called by the current owner.
+     */
+    function transferOwnership(address newOwner) public virtual onlyOwner {
+        require(newOwner != address(0), "Ownable: new owner is the zero address");
+        _setOwner(newOwner);
+    }
+
+    function _setOwner(address newOwner) private {
+        address oldOwner = _owner;
+        _owner = newOwner;
+        emit OwnershipTransferred(oldOwner, newOwner);
+    }
+}
+
+
 // File @openzeppelin/contracts/utils/math/SafeMath.sol@v4.3.2
 
 // SPDX-License-Identifier: MIT
@@ -1410,79 +1483,6 @@ library SafeMath {
             require(b > 0, errorMessage);
             return a % b;
         }
-    }
-}
-
-
-// File @openzeppelin/contracts/access/Ownable.sol@v4.3.2
-
-// SPDX-License-Identifier: MIT
-
-pragma solidity ^0.8.0;
-
-/**
- * @dev Contract module which provides a basic access control mechanism, where
- * there is an account (an owner) that can be granted exclusive access to
- * specific functions.
- *
- * By default, the owner account will be the one that deploys the contract. This
- * can later be changed with {transferOwnership}.
- *
- * This module is used through inheritance. It will make available the modifier
- * `onlyOwner`, which can be applied to your functions to restrict their use to
- * the owner.
- */
-abstract contract Ownable is Context {
-    address private _owner;
-
-    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
-
-    /**
-     * @dev Initializes the contract setting the deployer as the initial owner.
-     */
-    constructor() {
-        _setOwner(_msgSender());
-    }
-
-    /**
-     * @dev Returns the address of the current owner.
-     */
-    function owner() public view virtual returns (address) {
-        return _owner;
-    }
-
-    /**
-     * @dev Throws if called by any account other than the owner.
-     */
-    modifier onlyOwner() {
-        require(owner() == _msgSender(), "Ownable: caller is not the owner");
-        _;
-    }
-
-    /**
-     * @dev Leaves the contract without owner. It will not be possible to call
-     * `onlyOwner` functions anymore. Can only be called by the current owner.
-     *
-     * NOTE: Renouncing ownership will leave the contract without an owner,
-     * thereby removing any functionality that is only available to the owner.
-     */
-    function renounceOwnership() public virtual onlyOwner {
-        _setOwner(address(0));
-    }
-
-    /**
-     * @dev Transfers ownership of the contract to a new account (`newOwner`).
-     * Can only be called by the current owner.
-     */
-    function transferOwnership(address newOwner) public virtual onlyOwner {
-        require(newOwner != address(0), "Ownable: new owner is the zero address");
-        _setOwner(newOwner);
-    }
-
-    function _setOwner(address newOwner) private {
-        address oldOwner = _owner;
-        _owner = newOwner;
-        emit OwnershipTransferred(oldOwner, newOwner);
     }
 }
 
@@ -1825,20 +1825,18 @@ pragma solidity ^0.8.0;
 
 
 
-
 contract HarmonixKey is ERC721Enumerable, Dictionary, Ownable {
-    using SafeMath for uint256;
     
     string public cardColor;    // color of the key
 
     struct TokenData {
         string tag;             // auto-generated token tag
-        uint256 issueDate;      // date of token creation
+        uint issueDate;         // date of token creation
         bool visible;           // whether vault data related to this key is publicly visible
         bool active;            // whether the key is active (user can only have 1 active key at a time to interact with the vault)
     }
-    mapping(uint256 => TokenData) private tokens;
-    mapping(address => uint256) private ownership;
+    mapping(uint => TokenData) private tokens;
+    mapping(address => uint) private ownership;
 
     uint256 _idNonce = 0;
 
@@ -1846,13 +1844,13 @@ contract HarmonixKey is ERC721Enumerable, Dictionary, Ownable {
 
     // Token ID needs to be unique and non-consecutive for greater security, so that
     // no one else can guess other user accounts from knowing the tokenId of a single user
-    function _generateID() internal returns (uint256) {
-        _idNonce = _idNonce.add(1);
-        return uint256(keccak256(abi.encodePacked(_idNonce)));
+    function _generateID() internal returns (uint) {
+        _idNonce = _idNonce + 1;
+        return uint(keccak256(abi.encodePacked(_idNonce)));
     }
 
-    function mint(address user) external onlyOwner returns (uint256) {
-        uint256 tokenId = _generateID();
+    function mint(address user) external onlyOwner returns (uint) {
+        uint tokenId = _generateID();
         tokens[tokenId] = TokenData(
             _generateName(),
             block.timestamp,
