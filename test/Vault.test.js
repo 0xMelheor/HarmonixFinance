@@ -27,12 +27,13 @@ describe("Harmonix Vault", function () {
 
 
         // launch compounder
-        vault = await Vault.deploy(
-            "Awesome Investment!"
-        );
-        await vault.deployed();
         lp = await LP.deploy("LPToken", "LP", system.address, 10000);
         await lp.deployed();
+        vault = await Vault.deploy(
+            "Awesome Investment!",
+            lp.address
+        );
+        await vault.deployed();
         strategy = await Strategy.deploy(
             lp.address,
             vault.address,
@@ -44,7 +45,6 @@ describe("Harmonix Vault", function () {
         );
         await strategy.deployed();
         await vault.addStrategy(strategy.address);
-
 
         v0 = vault.connect(user);
         v1 = vault.connect(user1);
@@ -64,10 +64,33 @@ describe("Harmonix Vault", function () {
         );
     });
 
-    it("creating account results in user obtaining an NFT and interactios to succeed", async function () {
+    it("creating account results in user obtaining an NFT and interactions to succeed", async function () {
+        await vault.setActiveStrategy(strategy.address);
         await lp.transfer(user.address, 100);
         await v0.createAccount();
-        await v0.approve(vault.address, 100);
-        await v0.deposit(100);
+        await lp.connect(user).approve(vault.address, 100);
+        await v0.deposit(lp.address, 100);
+    });
+
+    it("can't deposit to vault with no active strategy", async function () {
+        await lp.transfer(user.address, 100);
+        await v0.createAccount();
+        await lp.connect(user).approve(vault.address, 100);
+        await expectRevert(
+            v0.deposit(lp.address, 100),
+            "Vault::no active strategy"
+        );
+    });
+
+    it("can't deposit unsupported token", async function () {
+        await vault.setActiveStrategy(strategy.address);
+        const lp1 = await LP.deploy("Another Token", "LP", user.address, 10000);
+        await lp1.deployed();
+        await v0.createAccount();
+        await lp1.connect(user).approve(vault.address, 100);
+        await expectRevert(
+            v0.deposit(lp1.address, 100),
+            "Vault::deposit, token not supported"
+        );
     });
 });
