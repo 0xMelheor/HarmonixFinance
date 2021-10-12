@@ -667,6 +667,7 @@ abstract contract BaseStrategy is Manager, Pausable, GasThrottler, SimpleERC20 {
 
     address public weth;            // wrapped version of native platform token
     address public depositToken;    // token or LP this strategy wants to operate on
+    address public rewardToken;     // token or LP this strategy accumulates as a reward
     address public vault;           // address of the managing vault
     address public masterchef;      // masterchef for this strategy
     address public strategist;      // address of the strategy developer
@@ -676,7 +677,9 @@ abstract contract BaseStrategy is Manager, Pausable, GasThrottler, SimpleERC20 {
 
     uint256 constant internal BIPS_DIVISOR = 10000;
 
-    address public stakingContract; // xHMX contract paying investors fees from all contracts on the system
+    // enumerable wallets
+    address[] wallets;
+    mapping(uint => address) private walletMap;
 
     event Deposit(address indexed account, uint amount);
     event Withdraw(address indexed account, uint amount);
@@ -684,6 +687,7 @@ abstract contract BaseStrategy is Manager, Pausable, GasThrottler, SimpleERC20 {
 
     constructor(
         address _want,
+        address _reward,
         address _vault,
         address _strategist,
         address _masterchef,
@@ -692,6 +696,7 @@ abstract contract BaseStrategy is Manager, Pausable, GasThrottler, SimpleERC20 {
         address _native
     ) SimpleERC20("Harmonix Strategy", "HMXS") {
         depositToken = _want;
+        rewardToken = _reward;
         vault = _vault;
         strategist = _strategist;
         masterchef = _masterchef;
@@ -761,10 +766,22 @@ abstract contract BaseStrategy is Manager, Pausable, GasThrottler, SimpleERC20 {
     function checkReward() public virtual view returns (uint);
 
     /**
-     * @dev logic for charging fees
+     * @notice Cumulative balance of accumulated rewards, can be used to check whether
+     * harvesting is profitable.
      */
-    function _chargeFees() internal {
-        // uint256 rewards = IERC20(reward).balanceOf(address(this));
+    function balanceOfReward() public view returns (uint) {
+        uint reward = 0;
+        for (uint i = 0; i < wallets.length; i++) {
+            reward += IERC20(rewardToken).balanceOf(wallets[i]);
+        }
+        return reward;
+    }
+
+    /**
+     * @dev logic for charging fees, and distributing them to stakeholders
+     */
+    function _chargeFees(address wallet) internal {
+        uint256 rewards = IERC20(rewardToken).balanceOf(wallet);
     }
 
     /**
@@ -781,8 +798,10 @@ abstract contract BaseStrategy is Manager, Pausable, GasThrottler, SimpleERC20 {
      * withdraw funds, it simply stops the strategy from doing its own logic on top (i.e. recompounding).
      */
     function harvest() external whenNotPaused gasThrottle {
-        _chargeFees();
-        reinvest();
+        for (uint i = 0; i < wallets.length; i++) {
+            _chargeFees(wallets[i]);
+            reinvest();
+        }
     }
 
     /**
@@ -855,6 +874,7 @@ contract IdleStrategy is BaseStrategy {
 
     constructor (
         address _want,
+        address _reward,
         address _vault,
         address _strategist,
         address _masterchef,
@@ -863,6 +883,7 @@ contract IdleStrategy is BaseStrategy {
         address _native
     ) BaseStrategy(
         _want,
+        _reward,
         _vault,
         _strategist,
         _masterchef,
